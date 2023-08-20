@@ -1,0 +1,89 @@
+<html>
+    <head>
+        <title>
+            No JavaScript Fingerprints Generator
+        </title>
+        <script src="./cdnjs/crypto-js.js"></script>
+        <style>
+            .center {
+                margin: auto;
+                width: 60%;
+                border: 3px solid #73AD21;
+                padding: 10px;
+                }
+            .img {
+                margin-left: auto;
+                margin-right: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <form action="" class="center">
+            <img src="./icon.ico" alt="Fingerprints" height="200px" width="200px" style="margin-left: 440px" onclick="generateBrowserFingerprint()"/>
+            <h1 id="res" style="text-align: center;"></h1>
+        </form>
+        <script>
+            function generateBrowserFingerprint() {
+                var fingerprintData = {
+                    user_agent: navigator.userAgent,
+                    accept_language: navigator.language,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    screen_resolution: getScreenResolution(),
+                    plugins: getInstalledPlugins(),
+                    fonts: getInstalledFonts(),
+                    hardware_concurrency: navigator.hardwareConcurrency
+                };
+                // Serialize and hash the fingerprint data
+                var fingerprint = CryptoJS.MD5(JSON.stringify(fingerprintData)).toString();
+                
+                // console.log(hash);
+                // var fingerprint = md5(JSON.stringify(fingerprintData));
+                
+                document.getElementById("res").innerHTML = fingerprint;
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'server.php?data=' + fingerprint, true);
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        var response = xhr.responseText;
+                        console.log(response);
+                    }
+                };
+                xhr.send();
+                // return fingerprint;
+            }
+            
+            function getScreenResolution() {
+                return window.screen.width + 'x' + window.screen.height;
+            }
+            
+            function getInstalledPlugins() {
+                var plugins = [];
+                for (var i = 0; i < navigator.plugins.length; i++) {
+                    plugins.push(navigator.plugins[i].name);
+                }
+                return plugins.join(', ');
+            }
+            
+            function getInstalledFonts() {
+                var fonts = [];
+                var testText = "abcdefghijklmnopqrstuvwxyz0123456789";
+                var defaultFont = getComputedStyle(document.body).fontFamily;
+            
+                var fontList = ["serif", "sans-serif", "monospace", "cursive", "fantasy"];
+            
+                for (var i = 0; i < fontList.length; i++) {
+                    document.body.style.fontFamily = fontList[i];
+                    var computedFont = getComputedStyle(document.body).fontFamily;
+                    if (computedFont !== defaultFont) {
+                        fonts.push(computedFont);
+                    }
+                }
+            
+                document.body.style.fontFamily = defaultFont;
+            
+                return fonts.join(', ');
+            }
+        </script>
+    </body>
+</html>
